@@ -55,15 +55,15 @@ let  arr:[string,number,boolean]=[‘1’,1,false];
 事先考虑某一个变量可能取的值，尽量用自然语言中含义清楚的单词来表示每一个值，这种方法称为枚举方法，把这种方法定义的类型称为枚举类型  
 enum类型是对JavaScript标准数据类型的一个补充
 ```
-Enum  枚举名{
+enum  枚举名{
 	标识符[整型常量]
 }
-Enum Flag{success=1,error=-1}
-Var f:Flag=Flag.success
+enum Flag{success=1,error=-1}
+var f:Flag=Flag.success
 ```
 默认没有赋值的话，会打印索引值  
 ```
-Enum Color{red,blue,orange}
+enum Color{red,blue,orange}
 var c:Color = Color.orange
 ```
 七、任意类型any  (anyscript)  
@@ -105,8 +105,8 @@ function infiniteLoop(): never {
 类型断言有两种形式。 
 其一是“尖括号”语法：
 ```
-let someValue: any = "this is a string";
-let strLength: number = (<string>someValue).length;
+let someValue:any = "this is a string";
+let strLength:number = (<string>someValue).length;
 ```
 另一个为as语法：
 ```
@@ -159,7 +159,36 @@ let employeeName = buildName("Joseph", "Samuel", "Lucas", "MacKinzie");
 
 ts函数的重载  
 Java中方法的重载：重载指的是两个或两个以上同名的函数，但他们参数不一样，这样就会有函数重载的情况  
-Typescript中的重载，通过为同个函数与提供多个函数类型定义来实现多种功能的目的  
+Typescript中的重载，通过为同个函数与提供多个函数类型定义来实现多种功能的目的
+```  
+// 重载
+function padding(all: number);
+function padding(topAndBottom: number, leftAndRight: number);
+function padding(top: number, right: number, bottom: number, left: number);
+// 函数体需要处理的所有情况的真实表示
+function padding(a: number, b?: number, c?: number, d?: number) {
+  if (b === undefined && c === undefined && d === undefined) {
+    b = c = d = a;
+  } else if (c === undefined && d === undefined) {
+    c = a;
+    d = b;
+  }
+  return {
+    top: a,
+    right: b,
+    bottom: c,
+    left: d
+  };
+}
+```
+这里前三个函数头可有效调用 padding:
+```
+padding(1); // Okay: all
+padding(1, 1); // Okay: topAndBottom, leftAndRight
+padding(1, 1, 1, 1); // Okay: top, right, bottom, left
+
+padding(1, 1, 1); // Error: Not a part of the available overloads
+```
 函数参数解构的写法：
 ```
 function f({ x: number }) {
@@ -195,12 +224,11 @@ In dentity通用函数，可以适用于不同的类型。我们研究一下函�
 ### 接口（interfaces）    
 接口的作用：在面向对象的编程中，接口是一种规范的定义。定义了行为和动作的规范。在程序设计中，接口起到了一种限制和规范的作用。接口定义了某一批所需要遵守的规范。  
 Typescript中的接口分类  
-1、	属性类接口  
-2、	函数类接口  
+1、	属性类接口  属性接口 对json的约束    
+2、	函数类型接口  
 3、	可索引接口  
 4、	类类型接口  
 5、	接口扩展  
-属性接口 对json的约束  
 ts中定义方法传入参数对json的约束  
 行为和动作的规范，对批量方法进行约束  
 接口可选属性（参数的顺序无所谓）  
@@ -222,6 +250,18 @@ function ajax(config:Config){
     }
 }
 ```
+二、函数类型接口   
+可以使用接口的方式来定义一个函数需要符合的形状  
+```
+interface encrypt {
+    (key:string,value:string) : string
+}
+
+let md5:encrypt = (key:string,value:string):string {
+    return key+value
+}
+```
+encrypt这个接口规定了函数的传参为key和value两个变量，并且这两个变量都是string类型。同时规定了函数的返回值也是string类型。   
 ```
 interface Person {
 	name:sting;
@@ -232,7 +272,86 @@ let tom:Person={
 	age:25
 }
 ```
-interface
+三、可索引接口  
+（1）对数组的约束
+```
+interface UserArr{
+    [index:number] : string
+}
+let arr:UserArr = ['aaa','bbb']
+console.log(arr[0]) // aaa
+```
+(2)对对象的约束  
+```
+interface UserObj{
+    [key:string]: string | number
+}
+const obj:UserObj = {
+    name: 'Leon',
+    age: 18
+}
+```
+四、类类型接口   
+implements实现（implements）是面向对象中的一个重要概念。一般来讲，一个类只能继承自另一个类，有时候不同类之间可以有一些共有的特性，这时候就可以把特性提取成接口（interfaces），用 implements 关键字来实现。这个特性大大提高了面向对象的灵活性  
+``` 
+interface Animal{
+    name: string
+    eat(str:string):void
+}
+//可以用implements来实现这个类
+class Dog implememts Animal {
+    name: string//ES6 中实例的属性只能通过构造函数中的 this.xxx 来定义，ES7 提案中可以直接在类里面定义：
+    constructor(name:string) {
+        this.name = name
+    }
+    eat() {
+        console.log(this.name+'吃骨头')
+    }
+}
+let d = new Dog('小黑')
+d.eat()//小黑吃骨头
+```
+一个类可以实现多个接口：
+```
+interface Alarm {
+    alert();
+}
+
+interface Light {
+    lightOn()
+    lightOff()
+}
+
+class Car implements Alarm, Light {
+    alert() {
+        console.log('Car alert')
+    }
+    lightOn() {
+        console.log('Car light on')
+    }
+    lightOff() {
+        console.log('Car light off')
+    }
+}
+```
+``` 
+interface encrypt {
+    (key:string,value:string) : string
+}
+
+let md5:encrypt = (key:string,value:string):string {
+    return key+value
+}
+```
+五、实现接口的扩展  
+接口的继承
+```
+interface ErrorMsg extends Error {
+  name: any;
+  response?: any;
+}
+const error: ErrorMsg = new Error(errortext);
+```
 interface User {
   name: string
   age: number
@@ -280,7 +399,7 @@ class Animal {
 new Animal("Cat").name; // 错误: 'name' 是私有的.
 ```  
 理解protected  
-protected修饰符与private修饰符的行为很相似，但有一点不同，protected成员在派生类中仍然可以访问。例如：  
+protected修饰符与private修饰符的行为很相似，但有一点不同，protected成员在子类中仍然可以访问。例如：  
 ```
 class Person {
     protected name: string;
@@ -321,7 +440,7 @@ dad.name = "Man with the 3-piece suit"; // 错误! name 是只读的.
 ```
 typescript中实现继承  (省略)  
 静态属性、静态方法  
-Es5的静态方法的表示：  
+es5的静态方法的表示：  
 ```
 function Person{
 	this.run=function(){
