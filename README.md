@@ -29,7 +29,7 @@ let fibonacci: Array<number> = [1, 1, 2, 3, 5];
 ```
 3、用接口表示数组  
 ```
-interface NumberArray {
+interface NumberArray {  
     [index: number]: number;
 }
 let fibonacci: NumberArray = [1, 1, 2, 3, 5]
@@ -46,30 +46,82 @@ function sum() {
     } = arguments;
 }
 ```
-五、元组类型：属于数组的一种，可以指定值（单个值）的类型  
+五、元组类型Tuple：属于数组的一种，可以指定值（单个值）的类型  
 ```
 let  arr:[string,number,boolean]=[‘1’,1,false];
 ```
-六、枚举类型  
+六、枚举类型  enum  
 随着计算机的不断普及，程序不仅仅只用于数值计算，还更广泛地用于处理非数值数据  
 事先考虑某一个变量可能取的值，尽量用自然语言中含义清楚的单词来表示每一个值，这种方法称为枚举方法，把这种方法定义的类型称为枚举类型  
 enum类型是对JavaScript标准数据类型的一个补充
-```
-enum  枚举名{
-	标识符[整型常量]
-}
-enum Flag{success=1,error=-1}
-var f:Flag=Flag.success
-```
 默认没有赋值的话，会打印索引值  
 ```
-enum Color{red,blue,orange}
-var c:Color = Color.orange
+enum RequestMethod{
+    Get,
+    Post, 
+    Put,
+    Delete,
+    Options,
+    Head, 
+    Patch
+}
+
+let requestMethod = RequestMethod.Get;
+console.log(requestMethod);  // 0
 ```
+上面定义的 RequestMethod 枚举会被编译成以下 ES5 代码：  
+```
+"use strict";
+var  RequestMethod;
+(function(RequestMethod){    
+    RequestMethod[RequestMethod["Get"] = 0] = "Get";
+    RequestMethod[RequestMethod["Post"] = 1] = "Post";   
+    RequestMethod[RequestMethod["Put"] = 2] = "Put";  
+    RequestMethod[RequestMethod["Delete"] =3] = "Delete";
+    RequestMethod[RequestMethod["Options"] = 4] = "Options";   
+    RequestMethod[RequestMethod["Head"] = 5] = "Head";  
+    RequestMethod[RequestMethod["Patch"] = 6] = "Patch";
+})(RequestMethod || (RequestMethod = {}));
+var requestMethod = RequestMethod.Get;
+console.log(requestMethod);
+```
+设置中间枚举成员的值
+```
+enum RequestMethod {
+    Get,
+    Post,  
+    Put,
+    Delete = 8, 
+    Options,
+    Head,
+    Patch
+}
+
+```
+以上代码编译生成的 ES5 代码如下：  
+```
+"use strict";
+var RequestMethod;
+(function(RequestMethod){
+    RequestMethod[RequestMethod["Get"] = 0] = "Get";   
+    RequestMethod[RequestMethod["Post"] = 1] = "Post";   
+    RequestMethod[RequestMethod["Put"] = 2] = "Put";
+    RequestMethod[RequestMethod["Delete"] = 8] = "Delete";  
+    RequestMethod[RequestMethod["Options"] = 9] = "Options";
+    RequestMethod[RequestMethod["Head"] = 10] = "Head";    
+    RequestMethod[RequestMethod["Patch"] = 11] = "Patch";
+})(RequestMethod || (RequestMethod = {}));
+```
+
 七、任意类型any  (anyscript)  
-八、null和undefined   使用联合类型
+八、null和undefined   使用联合类型  
+null和undefined可以被赋值给Typescript中的所有类型   
 ```
 let s:string | null | undefined = undefined;
+
+let foo:number = 123;
+foo = null;   // ok
+foo = undefined;   // ok
 ```
 
 九、void类型  
@@ -113,6 +165,13 @@ let strLength:number = (<string>someValue).length;
 let someValue: any = "this is a string";
 let strLength: number = (someValue as string).length;
 ```
+十一、Object   
+object表示非原始类型，也就是除number，string，boolean，symbol，null或undefined之外的类型。
+使用object类型，就可以更好的表示像Object.create这样的API。例如：
+```
+declare function create(o: object | null): void;
+```
+
 ### 函数  
 ```
 // Named function
@@ -201,12 +260,28 @@ function f({x}:{x:number}) {
 ```
 ### 泛型：  
 使用any类型会导致这个函数可以接收任何类型的arg参数，这样就丢失了一些信息：传入的类型与返回的类型应该是相同的。如果我们传入一个数字，我们只知道任何类型的值都有可能被返回。  
-因此，我们需要一种方法使返回值的类型与传入参数的类型是相同的。这里，我们使用了类型变量，它是一种特殊的变量，只用于表示类型而不是值  
+因此，我们需要一种方法使返回值的类型与传入参数的类型是相同的。这里，我们使用了类型变量，它是一种特殊的变量，只用于表示类型而不是值   
+你可能会疑惑为什么类型参数是S, 其实随便什么都可以，但是通常来说我们会用一个变量的第一个字母的大写来代表这个变量的类型：
 ```
-function  identity<T>(arg:T):T {
-    return arg;
+T(for“T”ype)
+E(for“E”lement)
+K(for“K”ey)
+V(for“V”alue)
+```
+```
+function identity(arg: number): number {
+  return arg;
+}
+
+function identity(arg: string): string {
+  return arg;
+}
+
+function identity<T>(arg: T): T {
+  return arg;
 }
 ```
+使用泛型后，可以接受任意类型，但是又完成了函数参数和返回值的约束关系。十分灵活~可复用性大大增强了  
 我们给indentity添加了类型变量T。T帮助我们捕获用户传入的类型（比如：number），之后我们就可以使用这个类型。之后我们再次使用了T当做返回值类型。现在我们可以知道参数类型与返回值类型是相同的了。这允许我们跟踪函数里使用的类型的信息。  
 我们把这个版本的identity函数叫做泛型，因为它可以适用于多个类型。不同于使用any，它不回丢失信息，想第一个例子那像保持准确性，传入所有的参数，包含类型参数  
 ```
@@ -219,19 +294,26 @@ let  output = indetity(“myString”);
 ```
 注意我们没必要使用尖括号（<>）来明确地传入类型；编译器可以查看myString的值，然后把T设置为它的类型。类型推论帮助我们保持代码精简和高可读性。如果编译器不能够自动地推断出类型的话，只能像上面一样明确传入T的类型，在一些复杂的情况下，这是可能出现的  
 泛型类型  
-In dentity通用函数，可以适用于不同的类型。我们研究一下函数本身的类型，以及如何创建泛型接口
-泛型函数的类型与非泛型函数的类型没什么不同，只是有一个类型参数在最前面，像函数声明一样：  
+indentity通用函数，可以适用于不同的类型。我们研究一下函数本身的类型，以及如何创建泛型接口
+泛型函数的类型与非泛型函数的类型没什么不同，只是有一个类型参数在最前面，像函数声明一样：   
+forEach & map  
+```
+forEach(callbackfn: (value: T, index: number, array: T[]) => void, thisArg?: any): void;
+map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[];
+```
+forEach 一般用来执行副作用的，比如持久的修改一下元素、数组、状态等，以及打印日志等，本质上是不纯的。而 map 方法用来作为值的映射，本质上是纯净的，在函数式编程里十分重要。  
 ### 接口（interfaces）    
 接口的作用：在面向对象的编程中，接口是一种规范的定义。定义了行为和动作的规范。在程序设计中，接口起到了一种限制和规范的作用。接口定义了某一批所需要遵守的规范。  
+我们定义了一个接口Person，接着定义了一个变量tom。它的类型是Person。这样，我们就约束了tom的形状和接口Person一致。
 Typescript中的接口分类  
 1、	属性类接口  属性接口 对json的约束    
 2、	函数类型接口  
 3、	可索引接口  
-4、	类类型接口  
+4、	类类型接口   
 5、	接口扩展  
 ts中定义方法传入参数对json的约束  
 行为和动作的规范，对批量方法进行约束  
-接口可选属性（参数的顺序无所谓）  
+一、接口可选属性（参数的顺序无所谓）  
 ```
 interface Config{
 	type:string;
@@ -283,6 +365,11 @@ console.log(arr[0]) // aaa
 ```
 (2)对对象的约束  
 ```
+let foo = {};
+foo.bar = 123;            // error:  类型 {} 上不存在属性bar
+foo.bas = 'Hello World';  // error:  类型 {} 上不存在属性bas
+```
+```
 interface UserObj{
     [key:string]: string | number
 }
@@ -300,7 +387,7 @@ interface Animal{
 }
 //可以用implements来实现这个类
 class Dog implememts Animal {
-    name: string//ES6 中实例的属性只能通过构造函数中的 this.xxx 来定义，ES7 提案中可以直接在类里面定义：
+    name: string  //ES6 中实例的属性只能通过构造函数中的 this.xxx 来定义，ES7 提案中可以直接在类里面定义：
     constructor(name:string) {
         this.name = name
     }
@@ -313,38 +400,25 @@ d.eat()//小黑吃骨头
 ```
 一个类可以实现多个接口：
 ```
-interface Alarm {
-    alert();
+interface Shape {
+    color: string;
 }
 
-interface Light {
-    lightOn()
-    lightOff()
+interface PenStroke {
+    penWidth: number;
 }
 
-class Car implements Alarm, Light {
-    alert() {
-        console.log('Car alert')
-    }
-    lightOn() {
-        console.log('Car light on')
-    }
-    lightOff() {
-        console.log('Car light off')
-    }
-}
-```
-``` 
-interface encrypt {
-    (key:string,value:string) : string
+interface Square extends Shape, PenStroke {
+    sideLength: number;
 }
 
-let md5:encrypt = (key:string,value:string):string {
-    return key+value
-}
+let square = <Square>{};
+square.color = "blue";
+square.sideLength = 10;
+square.penWidth = 5.0;
 ```
 五、实现接口的扩展  
-接口的继承
+接口和类一样，接口也可以相互继承。 这让我们能够从一个接口里复制成员到另一个接口里，可以更灵活地将接口分割到可重用的模块里。  
 ```
 interface ErrorMsg extends Error {
   name: any;
@@ -352,22 +426,6 @@ interface ErrorMsg extends Error {
 }
 const error: ErrorMsg = new Error(errortext);
 ```
-interface User {
-  name: string
-  age: number
-}
-
-interface SetUser {
-  (name: string, age: number): void;
-}
-
-type类型：  
-type User = {
-  name: string
-  age: number
-};
-
-type SetUser = (name: string, age: number)=> void;
 ### 类（Classes） 
 ts表示类  
 ```
@@ -387,7 +445,7 @@ public   公有，在类里面、子类、类外面都可以访问
 protected    保护类型，在类里面，子类里面可以访问，在类外部都没法访问  
 private 私有 在类里面可以访问、子类，类外部都没法访问  
 默认不加修饰符就是public  
-理解private  
+1、理解private  
 当成员被标记成private时，它就不能在声明它的类的外部访问。比如：
 ```
 class Animal {
@@ -398,7 +456,7 @@ class Animal {
 }
 new Animal("Cat").name; // 错误: 'name' 是私有的.
 ```  
-理解protected  
+2、理解protected  
 protected修饰符与private修饰符的行为很相似，但有一点不同，protected成员在子类中仍然可以访问。例如：  
 ```
 class Person {
@@ -425,7 +483,7 @@ let howard = new Employee("Howard", "Sales");
 console.log(howard.getElevatorPitch());
 console.log(howard.name); // 错误
 ```
-readonly修饰符  
+3、readonly修饰符  
 使用readonly关键字将属性设置为只读的。
 ```
 class Octopus {
@@ -480,6 +538,7 @@ Person.print()
 ```
 
 多态属于继承  
+多态：父类定义一个方法不去实现，让继承它的子类去实现，每个子类有不同的表现  
 抽象方法、抽象类  
 abstract用来表示抽象    
 抽象方法只能放在抽象类中  ,抽象类和抽象方法用来定义标准
@@ -488,63 +547,13 @@ abstract class Animal{
 	abstract eat():any
 }
 ```
-abstract类无法创建实例  
+typescript的抽象类，它是提供其他继承的基类，不能直接被实例化。abstract类无法创建实例  
 ```
 var a =new Animal(); // 报错
 ```
-抽象类的抽象方法在子类就必须要实现。不实现就会报错  
-
-
-
-
-
-
-
-
-
-
-类型别名声明（type sn=number|string;）  
-接口声明（interface I{x:number[];}）  
-类声明（class c{}）  
-枚举声明（enum E{A,B,C}）  
-指向某个类型的import声明  
-
-学习成本：
-需要理解接口（interfaces）、泛型（Generics）、类（Classes）、枚举类型（Enums）
-
-我们定义了一个接口Person，接着定义了一个变量tom。它的类型是Person。这样，我们就约束了tom的形状和接口Person一致
-
-
-
-可调用的
-可以使用类型别名或者接口来表示一个可被调用的类型注解
-
-单例模式
-传统的单例模式可以用来解决所有代码必须写到class中的问题
-class Sigleton {
-	private static indatnce:Singleton;
-	private constructor() {
-}
-Public static getInstance(){
-	If(!Singleton.instance) {
-	Sigleton.insance=new Singleton();
-}
-Return Singleton.instance;
-}
-}
-
-
-let someThing = new Singleton(); // Error: constructor of 'singleton' is private
-
-let instacne = Singleton.getInstance(); // do some thing with the instance
-
-
-
-
-Var p =new Person();
-
-多态：父类定义一个方法不去实现，让继承它的子类去实现，每个子类有不同的表现
-
-抽象类：typescript的抽象类，它是提供其他继承的基类，不能直接被实例化。
 用abstract关键字定义的抽象类和抽象方法。抽象类中的抽象方法不包含其实现并且必须在派生类中实现。
+抽象类的抽象方法在子类就必须要实现。不实现就会报错    
 
+  
+学习成本：  
+需要理解接口（interfaces）、泛型（Generics）、类（Classes）、枚举类型（Enums）
